@@ -1,1 +1,3 @@
+.vscode/
 .env
+blog=aggregator
