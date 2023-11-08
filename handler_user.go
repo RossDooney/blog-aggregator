@@ -1,6 +1,7 @@
 package main
 
 import (
+	"RossDooney/blog-aggregator/internal/auth"
 	"RossDooney/blog-aggregator/internal/database"
 	"encoding/json"
 	"fmt"
@@ -25,12 +26,36 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
+	user, err := apiCfg.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 		Name:      parms.Name,
 	})
 
-	respondWithJSON(w, 200, struct{}{})
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't create user: %v", err))
+		return
+	}
+
+	respondWithJSON(w, 201, databaseUserToUser(user))
+}
+
+func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
+	apikey, err := auth.GetAPIKey(r.Header)
+
+	if err != nil {
+		respondWithError(w, 403, fmt.Sprintf("Auth Error: %v", err))
+		return
+	}
+
+	user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apikey)
+
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get user", err))
+		return
+	}
+
+	respondWithJSON(w, 200, databaseUserToUser(user))
+
 }
