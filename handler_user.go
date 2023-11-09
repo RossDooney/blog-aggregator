@@ -1,7 +1,6 @@
 package main
 
 import (
-	"RossDooney/blog-aggregator/internal/auth"
 	"RossDooney/blog-aggregator/internal/database"
 	"encoding/json"
 	"fmt"
@@ -41,20 +40,7 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 	respondWithJSON(w, 201, databaseUserToUser(user))
 }
 
-func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
-	apikey, err := auth.GetAPIKey(r.Header)
-
-	if err != nil {
-		respondWithError(w, 403, fmt.Sprintf("Auth Error: %v", err))
-		return
-	}
-
-	user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apikey)
-
-	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't get user", err))
-		return
-	}
+func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 
 	respondWithJSON(w, 200, databaseUserToUser(user))
 
